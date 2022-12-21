@@ -1,37 +1,37 @@
 /* The following was executed to produce the Dance+ Data Model:
 	1) CTE 'dates_combined':
 		a) Join tables set_times & sets_attended
-        b) combines set_time dates and time of the the artist(s) performance (Start & End)
-        c) Change datatype from text to date (Start & End)
+        	b) combines set_time dates and time of the the artist(s) performance (Start & End)
+        	c) Change datatype from text to date (Start & End)
 	2) CTE 'dancers_settimes':
 		a) Uses CTE 'dates_combined'
-        b) Converts combined sets date and time (Start & End) into 24-hour time
-        c) Change datatype again to reflect 24-hour time
-        d) Calculates the duration of each set
+        	b) Converts combined sets date and time (Start & End) into 24-hour time
+        	c) Change datatype again to reflect 24-hour time
+        	d) Calculates the duration of each set
 	3) CTE 'Steps_Per_Day':
 		a) Join tables dancers and steps
-        b) combines first and last name of the dancer to create 'fullname'
-        c) converts step_time recorded into 24 hour 
-        d) categorizes steps per day with Day of the week (Friday, Saturday, Sunday, Additional [Outside festival hours])
+        	b) combines first and last name of the dancer to create 'fullname'
+        	c) converts step_time recorded into 24 hour 
+        	d) categorizes steps per day with Day of the week (Friday, Saturday, Sunday, Additional [Outside festival hours])
 	4) CTE 'Dancer_profile':
 		a) Filters out 'Additonal' day to only include where step_count occurred on actual days
 	5) CTE 'Summary':
 		a) Join CTEs 'dancers_settimes' and 'Dancer_profile'
-        b) *Challenege* is that some sets that were attended fall into the same timeframe, which makes it difficult to:
+        	b) *Challenege* is that some sets that were attended fall into the same timeframe, which makes it difficult to:
 			- allocate the right amount of steps to each set/artist(s)
-            - determine the duration the dancer spent at set/artist(s)
-            - Understand where exactly the dancer was at that timestamp
+            		- determine the duration the dancer spent at set/artist(s)
+           		 - Understand where exactly the dancer was at that timestamp
 		c) Case statements and Window Functions are used to evenly disperse step_count to artist(s) with the same set time
 	6) Final Query - further aggregation to produce [Total Steps / Artist(s) / Dancer(s)] */
     
 -- CTE combines the dancers sets they attended with dates and times (Start & End)  
  With dates_combined As 
  (
-	 Select
+	Select
 		dancer_id,
-        st.artist_id,
-        st.artist_name,
-        set_attended,
+        	st.artist_id,
+        	st.artist_name,
+        	set_attended,
 		concat(date_format(str_to_date(Date,'%m/%d/%Y'),'%Y-%m-%d'), " ", set_starttime)  as start,
 		concat(date_format(str_to_date(Date,'%m/%d/%Y'),'%Y-%m-%d'), " ", set_endtime)  as end
 	from set_times as st
@@ -92,25 +92,25 @@ Dancer_profile as
 	- However, there are duplicates showing the same amount of steps on the same timestamp which is invalid
 		- Meaning the dancer saw two different artists within the same timestamp of artist's set
 	- Case statements with Windwow fucntions are used to help solve this
-    - further aggregation will be performed in the final query (Total Steps / Artist(s) / Dancer) */
+    	- further aggregation will be performed in the final query (Total Steps / Artist(s) / Dancer) */
 Summary as 
 (
 select 
 	dp.dancer_id,
-    fullname,
-    step_time,
-    festival_day,
-    step_count,
+	fullname,
+	step_time,
+	festival_day,
+	step_count,
 	Case 
 		When step_time = lead(step_time) Over (Partition by fullname Order by step_time) Then Round((step_count / 2),1)
 		When step_time = lag(step_time) Over (Partition by fullname Order by step_time) Then Round((step_count / 2),1)
 		Else step_count
-    End as Final_stepcount,
-    artist_name,
-    set_attended,
-    Start,
-    End,
-    Duration
+    	End as Final_stepcount,
+    	artist_name,
+   	set_attended,
+    	Start,
+    	End,
+    	Duration
 from dancer_profile as dp
 Join dancers_settimes as ds
 	On dp.dancer_id = ds.dancer_id 
@@ -121,15 +121,15 @@ Order by step_time
 -- Final query further aggregates all steps per artist(s) per dancer
 select 
 	s.dancer_id,
-    fullname,
-    step_time,
-    festival_day,
-    Sum(final_stepcount) as final_total_steps,
-    artist_name,
-    set_attended,
-    Start,
-    End,
-    Duration
+    	fullname,
+    	step_time,
+   	festival_day,
+    	Sum(final_stepcount) as final_total_steps,
+   	artist_name,
+    	set_attended,
+    	Start,
+    	End,
+    	Duration
 from summary as s
 Group by fullname, artist_name
 Order by s.dancer_id, step_time
