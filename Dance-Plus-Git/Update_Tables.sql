@@ -30,8 +30,7 @@ Update steps
 set dancer_id = 4
 Where 
 	sourcename = 'Jackies iPhone2'
-	OR sourcename = 'Jackies Apple Watch'
-;
+	OR sourcename = 'Jackies Apple Watch';
 
 -- Update demographic info of dancers table
 insert into dancers (dancer_id, firstname, lastname, birthdate, gender)
