@@ -1,7 +1,7 @@
 /* The following was executed to produce the Dance+ Data Model:
 	1) CTE 'dates_combined':
 		a) Join tables set_times & sets_attended
-        	b) combines set_time dates and time of the the artist(s) performance (Start & End)
+        	b) combines set_time dates and time of the artist(s) performance (Start & End)
         	c) Change datatype from text to date (Start & End)
 	2) CTE 'dancers_settimes':
 		a) Uses CTE 'dates_combined'
@@ -17,7 +17,7 @@
 		a) Filters out 'Additonal' day to only include where step_count occurred on actual days
 	5) CTE 'Summary':
 		a) Join CTEs 'dancers_settimes' and 'Dancer_profile'
-        	b) *Challenege* is that some sets that were attended fall into the same timeframe, which makes it difficult to:
+        	b) *Challenge* is that some sets that were attended fall into the same timeframe, which makes it difficult to:
 			- allocate the right amount of steps to each set/artist(s)
            		- determine the duration the dancer spent at set/artist(s)
            		- Understand where exactly the dancer was at that timestamp
